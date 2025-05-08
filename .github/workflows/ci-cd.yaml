@@ -18,9 +18,9 @@ on:
         description: The path to the Dockerfile
         required: true
         default: backend/Dockerfile
-      commit_sha:
-        description: Specific commit SHA to build from
-        required: true
+ #     commit_sha:
+ #       description: Specific commit SHA to build from
+ #       required: true
       build-args:
         description: Build arguments to pass to the Dockerfile (new-line delimited string)
         required: false
