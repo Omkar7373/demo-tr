@@ -13,11 +13,11 @@ on:
       context:
         description: The context for the docker build (build directory)
         required: true
-        default: bakend/
+        default: .
       dockerfile:
         description: The path to the Dockerfile
         required: true
-        default: Dockerfile
+        default: backend/Dockerfile
       commit_sha:
         description: Specific commit SHA to build from
         required: true
