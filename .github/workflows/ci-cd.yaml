@@ -1,0 +1,124 @@
+name: tr CI/CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      push:
+        type: boolean
+        description: Whether to push the image to the registry
+        default: false 
+      image:
+        description: Image name
+        required: true
+      context:
+        description: The context for the docker build (build directory)
+        required: true
+        default: .
+      dockerfile:
+        description: The path to the Dockerfile
+        required: true
+        default: backend/Dockerfile
+      commit_sha:
+        description: Specific commit SHA to build from
+        required: true
+      build-args:
+        description: Build arguments to pass to the Dockerfile (new-line delimited string)
+        required: false
+        default: ""
+      arch:
+        description: The architecture to build for (exactly one of amd64 or arm64)
+        required: true
+
+
+#  push:
+#    paths:
+#      - '**'
+#  pull_request:
+#    paths:
+#      - '/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install UV
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+#    - name: Install dependencies
+#      run: |
+#        cd mcp-servers/fastmcp/mcp-salesforce
+#        uv sync
+
+#    - name: Run tests
+#      run: |
+#       cd mcp-servers/fastmcp/mcp-salesforce
+#       uv run pytest
+
+#    - name: Run linting
+#      run: |
+#        cd mcp-servers/fastmcp/mcp-salesforce
+#        uv run ruff check .
+
+# This should be updated to use our multi-arch buildx setup but this should do for now
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Extract Docker image metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: amazonaws.com/ba-ai/${{ inputs.image }}
+        labels: |
+          org.opencontainers.image.revision=${{ inputs.commit_sha::0:7 }}
+
+
+          
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ inputs.context }}
+        build-args: ${{ inputs.build-args }}
+        file: ${{ inputs.dockerfile }}
+      #  tags: amazonaws.com/ba-ai/${{ inputs.image }}
+        push: ${{ inputs.push }}
+        tags: |
+          amazonaws.com/ba-ai/${{ inputs.image }}:latest
+          amazonaws.com/ba-ai/${{ inputs.image }}:${{ github.sha::0:7 }}
+        platforms: linux/${{ inputs.arch }}
+        provenance: false
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: |
+          type=registry,ref=amazonaws.com/ba-ai/${{ inputs.image }}:cache-${{ inputs.arch }}
+          type=registry,ref=amazonaws.com/ba-ai/${{ inputs.image }}:main-${{ inputs.arch }}
+        cache-to: |
+          type=registry,ref=amazonaws.com/ba-ai/${{ inputs.image }}:cache-${{ inputs.arch }},mode=max,image-manifest=true,oci-mediatypes=true
+        outputs: type=image,push-by-digest=true,name-canonical=true,push=${{ inputs.push }}
+
+
