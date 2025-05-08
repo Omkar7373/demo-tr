@@ -95,7 +95,7 @@ jobs:
       with:
         images: amazonaws.com/ba-ai/${{ inputs.image }}
         labels: |
-          org.opencontainers.image.revision=${{ inputs.commit_sha::0:7 }}
+          org.opencontainers.image.revision=${{ inputs.commit_sha }}
 
 
           
@@ -110,7 +110,7 @@ jobs:
         push: ${{ inputs.push }}
         tags: |
           amazonaws.com/ba-ai/${{ inputs.image }}:latest
-          amazonaws.com/ba-ai/${{ inputs.image }}:${{ github.sha::0:7 }}
+          amazonaws.com/ba-ai/${{ inputs.image }}:${{ github.sha }}
         platforms: linux/${{ inputs.arch }}
         provenance: false
         labels: ${{ steps.meta.outputs.labels }}
