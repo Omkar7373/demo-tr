@@ -21,10 +21,10 @@ on:
  #     commit_sha:
  #       description: Specific commit SHA to build from
  #       required: true
-      build-args:
-        description: Build arguments to pass to the Dockerfile (new-line delimited string)
-        required: false
-        default: ""
+ #     build-args:
+ #       description: Build arguments to pass to the Dockerfile (new-line delimited string)
+ #       required: false
+ #       default: ""
       arch:
         description: The architecture to build for (exactly one of amd64 or arm64)
         required: true
