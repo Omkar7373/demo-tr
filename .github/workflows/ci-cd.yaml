@@ -93,7 +93,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: amazonaws.com/ba-ai/${{ inputs.image }}
+        images: ${{ secrets.DOCKER_USERNAME }}${{ inputs.image }}
         labels: |
           org.opencontainers.image.revision=${{ inputs.commit_sha }}
 
@@ -114,5 +114,9 @@ jobs:
         platforms: linux/${{ inputs.arch }}
         provenance: false
         labels: ${{ steps.meta.outputs.labels }}
-        
+        cache-from: |
+          type=registry,ref=${{ secrets.DOCKER_USERNAME }}/${{ inputs.image }}:cache-${{ inputs.arch }}
+          type=registry,ref=${{ secrets.DOCKER_USERNAME }}/${{ inputs.image }}:main-${{ inputs.arch }}
+        cache-to: |
+          type=registry,ref=a${{ secrets.DOCKER_USERNAME }}/${{ inputs.image }}:cache-${{ inputs.arch }},mode=max,image-manifest=true,oci-mediatypes=true
 
