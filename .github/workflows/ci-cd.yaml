@@ -106,7 +106,7 @@ jobs:
         context: ${{ inputs.context }}
         build-args: ${{ inputs.build-args }}
         file: ${{ inputs.dockerfile }}
-      #  tags: amazonaws.com/ba-ai/${{ inputs.image }}
+      #  tags: amazonaws.com/ba-ai/$#{{ inputs.image }}
         push: ${{ inputs.push }}
         tags: |
           amazonaws.com/ba-ai/${{ inputs.image }}:latest
